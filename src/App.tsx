@@ -1,76 +1,61 @@
-import React, { useEffect, useRef } from 'react';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 
-function App() {
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  const isClicked = useRef<boolean>(false);
-
-  const coords = useRef<{
-    startX: number,
-    startY: number,
-    lastX: number,
-    lastY: number
-  }>({
-    startX: 0,
-    startY: 0,
-    lastX: 0,
-    lastY: 0
-  })
+const Home = () => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (!boxRef.current || !containerRef.current) return;
+    // Calculate the initial position to center the box
+    const centerX = window.innerWidth / 2 - 400; // Half the box width (600px)
+    const centerY = window.innerHeight / 2 - 200; // Half the box height (400px)
 
-    const box = boxRef.current;
-    const container = containerRef.current;
+    setPosition({ x: centerX, y: centerY });
+  }, []);
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartPosition({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
 
-    const onMouseDown = (e: MouseEvent) => {
-      isClicked.current = true;
-      coords.current.startX = e.clientX;
-      coords.current.startY = e.clientY;
-    }
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - startPosition.x,
+      y: e.clientY - startPosition.y,
+    });
+  };
 
-    const onMouseUp = (e: MouseEvent) => {
-      isClicked.current = false;
-      coords.current.lastX = box.offsetLeft;
-      coords.current.lastY = box.offsetTop;
-    }
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isClicked.current) return;
-
-      const nextX = e.clientX - coords.current.startX + coords.current.lastX;
-      const nextY = e.clientY - coords.current.startY + coords.current.lastY;
-
-      box.style.top = `${nextY}px`;
-      box.style.left = `${nextX}px`;
-    }
-
-    box.addEventListener('mousedown', onMouseDown);
-    box.addEventListener('mouseup', onMouseUp);
-    container.addEventListener('mousemove', onMouseMove);
-    container.addEventListener('mouseleave', onMouseUp);
-
-    const cleanup = () => {
-      box.removeEventListener('mousedown', onMouseDown);
-      box.removeEventListener('mouseup', onMouseUp);
-      container.removeEventListener('mousemove', onMouseMove);
-      container.removeEventListener('mouseleave', onMouseUp);
-    }
-
-    return cleanup;
-  }, [])
+  const rectangleStyle: React.CSSProperties = {
+    // width: '700px',
+    // height: '400px',
+    backgroundColor: 'blue',
+    position: 'absolute',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    cursor: 'pointer',
+  };
 
   return (
-    <main>
-      <div ref={containerRef} className="container">
-        <div ref={boxRef} className="box"></div>
-      </div>
-    </main>
+    <div
+      className="h-screen flex justify-center items-center bg-gray-200"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    >
+      <div
+        style={rectangleStyle}
+        onMouseDown={handleMouseDown}
+      ></div>
+    </div>
   );
-}
+};
 
-export default App;
+export default Home;
+  
